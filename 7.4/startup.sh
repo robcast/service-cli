@@ -152,6 +152,9 @@ git_settings ()
 # Convert all Environment Variables Prefixed with SECRET_
 convert_secrets
 
+# make all env variables eccessible in cron jobs
+printenv | sed 's/^\(.*\)$/export \1/g' >/etc/environment
+
 # Docker user uid/gid mapping to the host user uid/gid
 [[ "$HOST_UID" != "" ]] && [[ "$HOST_GID" != "" ]] && uid_gid_reset
 

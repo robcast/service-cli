@@ -24,13 +24,13 @@ jobs:
       fail-fast: false # Don't cancel other jobs if one fails
       matrix:
         include:
-          - runs-on: ubuntu-20.04
+#          - runs-on: ubuntu-20.04
+#            version: 7.3
+#          - runs-on: ubuntu-20.04
+#            version: 7.4
+          - runs-on: self-hosted
             version: 7.3
-          - runs-on: ubuntu-20.04
-            version: 7.4
-          - runs-on: ARM64
-            version: 7.3
-          - runs-on: ARM64
+          - runs-on: self-hosted
             version: 7.4
 
     env:

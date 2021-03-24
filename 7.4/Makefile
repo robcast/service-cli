@@ -4,7 +4,7 @@
 VERSION ?= 7.4
 
 SOFTWARE_VERSION ?= php$(VERSION)
-BUILD_TAG = $(SOFTWARE_VERSION)-build
+BUILD_TAG ?= $(SOFTWARE_VERSION)-build
 IMAGE = docksal/cli
 NAME = docksal-cli-$(VERSION)
 CWD = $(shell pwd)

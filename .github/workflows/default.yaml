@@ -24,16 +24,16 @@ jobs:
       fail-fast: false # Don't cancel other jobs if one fails
       matrix:
         include:
-#          - runs-on: ubuntu-20.04
-#            version: 7.3
-#          - runs-on: ubuntu-20.04
-#            version: 7.4
-          -
-            runs-on: ARM64
+          - runs-on: ubuntu-20.04
             version: 7.3
-          -
-            runs-on: ARM64
+          - runs-on: ubuntu-20.04
             version: 7.4
+#          -
+#            runs-on: ARM64
+#            version: 7.3
+#          -
+#            runs-on: ARM64
+#            version: 7.4
 
     env:
       IMAGE: docksal/cli
@@ -58,9 +58,9 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v2
-#      -
-#        name: Set up QEMU
-#        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -103,20 +103,39 @@ jobs:
         run: make tags
       -
         # Build for local use
-        name: Build image (local)
-        id: docker_build
+        name: Build image (amd64)
+        id: docker_build_amd64
         uses: docker/build-push-action@v2
         env:
-          IMAGE_CACHE: ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-build
+          BUILD_IMAGE_TAG: ${{ env.IMAGE }}:php${{ env.VERSION }}-amd64-build
         with:
           context: ${{ env.VERSION }}
           file: ${{ env.VERSION }}/Dockerfile
           build-args: |
             UPSTREAM_IMAGE=${{ env.UPSTREAM_IMAGE }}
             VERSION=${{ env.VERSION }}
-          tags: ${{ env.IMAGE }}:php${{ env.VERSION }}-build # Tag used locally in tests
+          platforms: linux/amd64 # Note: cannot use multi-platform with local image caching ("load: true")
+          tags: ${{ env.BUILD_IMAGE_TAG }} # Tag used locally in tests
           load: true # cache image locally for use by other steps
-          cache-from: type=registry,ref=${{ env.IMAGE_CACHE }}
+          cache-from: type=registry,ref=ghcr.io/${{ env.BUILD_IMAGE_TAG }}
+          cache-to: type=inline # Write the cache metadata into the image configuration
+      -
+        # Build for local use
+        name: Build image (arm64)
+        id: docker_build_arm64
+        uses: docker/build-push-action@v2
+        env:
+          BUILD_IMAGE_TAG: ${{ env.IMAGE }}:php${{ env.VERSION }}-arm64-build
+        with:
+          context: ${{ env.VERSION }}
+          file: ${{ env.VERSION }}/Dockerfile
+          build-args: |
+            UPSTREAM_IMAGE=${{ env.UPSTREAM_IMAGE }}
+            VERSION=${{ env.VERSION }}
+          platforms: linux/arm64 # Note: cannot use multi-platform with local image caching ("load: true")
+          tags: ${{ env.BUILD_IMAGE_TAG }} # Tag used locally in tests
+          load: true # cache image locally for use by other steps
+          cache-from: type=registry,ref=ghcr.io/${{ env.BUILD_IMAGE_TAG }}
           cache-to: type=inline # Write the cache metadata into the image configuration
       -
         # Print image info
@@ -131,20 +150,22 @@ jobs:
         id: docker_push_cache
         uses: docker/build-push-action@v2
         env:
-          IMAGE_CACHE: ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-build
+          CACHE_IMAGE_TAG: ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-build
         with:
           context: ${{ env.VERSION }}
           file: ${{ env.VERSION }}/Dockerfile
           build-args: |
             VERSION=${{ env.VERSION }}
-          tags: ${{ env.IMAGE_CACHE }} # Build cache tag in ghcr.io
+          platforms: linux/amd64,linux/arm64 # Cache image is multi-arch
+          tags: ${{ env.CACHE_IMAGE_TAG }} # Build cache tag in ghcr.io
           push: ${{ github.event_name != 'pull_request' }} # Don't push for PRs
           cache-to: type=inline # Write the cache metadata into the image configuration
       -
         # Run tests
-        name: Test
+        name: Test (amd64)
         working-directory: ${{ env.VERSION }}
         env:
+          BUILD_TAG: php${{ env.VERSION }}-amd64-build # Used in Makefile
           SECRET_PLATFORMSH_CLI_TOKEN: ${{ secrets.SECRET_PLATFORMSH_CLI_TOKEN }}
           SECRET_TERMINUS_TOKEN: ${{ secrets.SECRET_TERMINUS_TOKEN }}
         run: make test
@@ -162,7 +183,7 @@ jobs:
           file: ${{ env.VERSION }}./Dockerfile
           build-args: |
             VERSION=${{ env.VERSION }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64 # Final image is multi-arch
           tags: ${{ steps.docker_tags.outputs.tags }} # Note: using tags from docker_tags (custom script)
           labels: ${{ steps.docker_meta.outputs.labels }} # Note: using lables from docker_meta
           push: ${{ github.event_name != 'pull_request' }} # Don't push for PRs

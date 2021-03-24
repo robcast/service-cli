@@ -17,8 +17,8 @@ defaults:
 
 jobs:
   build-test-push:
-    name: Build on ${{ matrix.runs-on }} ${{ matrix.version }}
-    runs-on: ${{ matrix.runs-on }}
+    name: Build on ${{ matrix.runs-on-str }} ${{ matrix.version }}
+    runs-on: ${{ matrix.runs-onr }}
 
     strategy:
       fail-fast: false # Don't cancel other jobs if one fails
@@ -28,9 +28,13 @@ jobs:
 #            version: 7.3
 #          - runs-on: ubuntu-20.04
 #            version: 7.4
-          - runs-on: self-hosted
+          -
+            runs-on: [linux, ARM64]
+            runs-on-str: linux, ARM64
             version: 7.3
-          - runs-on: self-hosted
+          -
+            runs-on: [linux, ARM64]
+            runs-on-str: linux, ARM64
             version: 7.4
 
     env:

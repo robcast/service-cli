@@ -24,13 +24,13 @@ jobs:
       fail-fast: false # Don't cancel other jobs if one fails
       matrix:
         include:
-          - runs-on: [ubuntu-20.04]
+          - runs-on: ubuntu-20.04
             version: 7.3
-          - runs-on: [ubuntu-20.04]
+          - runs-on: ubuntu-20.04
             version: 7.4
-          - runs-on: [ubuntu-20.04,ARM64]
+          - runs-on: ARM64
             version: 7.3
-          - runs-on: [ubuntu-20.04,ARM64]
+          - runs-on: ARM64
             version: 7.4
 
     env:
@@ -97,6 +97,7 @@ jobs:
         # Generate image meta information
         name: Docker image tags
         id: docker_tags
+        working-directory: ${{ env.VERSION }}
         run: make tags
       -
         # Build for local use

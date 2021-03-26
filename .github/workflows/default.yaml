@@ -19,8 +19,6 @@ env:
   IMAGE: docksal/cli
   UPSTREAM_IMAGE: debian
   LATEST_VERSION: 7.3
-  PLATFORM: ${{ matrix.platform }}
-  VERSION: ${{ matrix.version }}
   DOCKSAL_VERSION: develop
 
 jobs:
@@ -44,6 +42,10 @@ jobs:
           -
             platform: linux/arm64
             version: 7.4
+
+    env:
+      PLATFORM: ${{ matrix.platform }}
+      VERSION: ${{ matrix.version }}
 
     steps:
       -

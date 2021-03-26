@@ -24,8 +24,6 @@ env:
   DOCKSAL_VERSION: develop
 
 jobs:
-  max-parallel: 1 # Run all jobs sequentially
-
   build-test:
     name: ${{ matrix.version }} build for ${{ matrix.platform }}
     runs-on: ubuntu-20.04
@@ -188,6 +186,8 @@ jobs:
   push:
     name: Push images to registry
     runs-on: ubuntu-20.04
+    needs: build-test
+
     steps:
       -
         name: Check Docker

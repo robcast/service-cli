@@ -10,7 +10,7 @@ NAME = docksal-cli-$(VERSION)
 CWD = $(shell pwd)
 
 # Improve write performance for /home/docker by turning it into a volume
-VOLUMES += -v /home/docker
+VOLUMES = -v /home/docker
 
 .EXPORT_ALL_VARIABLES:
 
@@ -35,8 +35,18 @@ push:
 run: clean
 	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(IMAGE):$(BUILD_TAG)
 
+# Copy files into container instead of mounting from the host at runtime.
+# This allows running tests on a remote docker instance.
 start: clean
-	docker run -d --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(IMAGE):$(BUILD_TAG)
+	docker create --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(IMAGE):$(BUILD_TAG)
+	docker cp ../tests/. $(NAME):/var/www/
+	docker start $(NAME)
+
+# Only copy docroot (not config overrides)
+start-bare: clean
+	docker create --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(IMAGE):$(BUILD_TAG)
+	docker cp ../tests/docroot/. $(NAME):/var/www/docroot/
+	docker start $(NAME)
 
 # Non-interactive and non-tty docker exec (uses LF instead of CRLF line endings)
 exec:

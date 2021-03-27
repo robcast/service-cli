@@ -74,8 +74,10 @@ jobs:
         with:
           docker_host: "ssh://ubuntu@${{ secrets.ARM64_HOST }}"
           context_name: arm64-host
-          ssh_key: "${{ secrets.ARM64_HOST_SSH_KEY }}" # Quotes important!
-          ssh_cert: "${{ secrets.ARM64_HOST_SSH_CERT }}" # Quotes important!
+          ssh_key: |
+            ${{ secrets.ARM64_HOST_SSH_KEY }}
+          ssh_cert: |
+            ${{ secrets.ARM64_HOST_SSH_CERT }}
           use_context: true
       -
         name: Check Docker

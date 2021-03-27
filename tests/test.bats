@@ -90,9 +90,11 @@ _healthcheck_wait ()
 	docker rm -vf "$NAME" >/dev/null 2>&1 || true
 	docker run --name "$NAME" -d \
 		-v /home/docker \
-		-v $(pwd)/../tests/docroot:/var/www/docroot \
 		${IMAGE}:${BUILD_TAG}
-	docker cp $(pwd)/../tests/scripts "$NAME:/var/www/"
+	# Copy files into the container instead of mounting from the host.
+	# This allows running tests on a remote docker instance.
+	docker cp $(pwd)/../tests/docroot ${NAME}:/var/www/docroot
+	docker cp $(pwd)/../tests/scripts ${NAME}:/var/www/scripts
 
 	run _healthcheck_wait
 	unset output

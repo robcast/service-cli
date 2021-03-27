@@ -69,7 +69,7 @@ jobs:
       # Switch docker context to a remote arm64 host
       -
         name: Use arm64 host
-        if: ${{ env.PLATFORM == "linux/arm64" }}
+        if: ${{ env.PLATFORM == 'linux/arm64' }}
         uses: arwynfr/actions-docker-context@98fc92878d0b856c1112c79b8d0f45353206e186
         with:
           docker_host: "ssh://ubuntu@${{ secrets.ARM64_HOST }}"

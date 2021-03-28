@@ -32,9 +32,11 @@ jobs:
         include:
           -
             platform: linux/amd64
+            arch: amd64
             version: 7.3
           -
             platform: linux/amd64
+            arch: amd64
             version: 7.4
           -
             platform: linux/arm64
@@ -77,7 +79,7 @@ jobs:
       # Switch docker context to a remote arm64 host
       -
         name: Switch to arm64 builder host
-        if: ${{ env.PLATFORM == 'linux/arm64' }}
+        if: ${{ env.ARCH == 'arm64' }}
         uses: arwynfr/actions-docker-context@98fc92878d0b856c1112c79b8d0f45353206e186
         with:
           docker_host: "ssh://ubuntu@${{ secrets.ARM64_HOST }}"

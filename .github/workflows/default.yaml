@@ -48,7 +48,6 @@ jobs:
     env:
       ARCH: ${{ matrix.arch }}
       VERSION: ${{ matrix.version }}
-      BUILD_IMAGE_TAG: ${{ env.IMAGE }}:php${{ matrix.version }}-${{ matrix.arch }}-build
 
     steps:
       -
@@ -58,6 +57,7 @@ jobs:
         name: Environment variables
         run: |
           echo "GIT_SHORT_SHA=${GITHUB_SHA:1:7}" >> $GITHUB_ENV
+          echo "BUILD_IMAGE_TAG=${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.ARCH }}-build" >> $GITHUB_ENV
       -
         name: Install prerequisites for tests
         run: |

@@ -241,15 +241,17 @@ jobs:
         #if: ${{ steps.docker_tags.outputs.tags != '' }}
         run: |
           set -xeuo pipefail
+          IMAGE_TAG_BASE=${{ env.IMAGE }}:php${{ env.VERSION }}
+          TAG_SUFFIX=build-${{ env.GIT_SHORT_SHA }}
           # Docker Hub
-          docker --debug manifest create ${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }} \
-            --amend ${{ env.IMAGE }}:php${{ env.VERSION }}-amd64-${{ env.GIT_SHORT_SHA }} \
-            --amend ${{ env.IMAGE }}:php${{ env.VERSION }}-arm64-${{ env.GIT_SHORT_SHA }}
-          docker --debug manifest inspect ${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}
-          docker --debug manifest push ${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}
+          docker --debug manifest create ${IMAGE_TAG_BASE}-${TAG_SUFFIX} \
+            --amend ${IMAGE_TAG_BASE}-amd64-${TAG_SUFFIX} \
+            --amend ${IMAGE_TAG_BASE}-arm64-${TAG_SUFFIX}
+          docker --debug manifest inspect ${IMAGE_TAG_BASE}-${TAG_SUFFIX}
+          docker --debug manifest push ${IMAGE_TAG_BASE}-${TAG_SUFFIX}
           # GitHub CR
-          docker --debug manifest create ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }} \
-            --amend ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-amd64-${{ env.GIT_SHORT_SHA }} \
-            --amend ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-arm64-${{ env.GIT_SHORT_SHA }}
-          docker --debug manifest inspect ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}
-          docker --debug manifest push ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}
+          docker --debug manifest create ghcr.io/${IMAGE_TAG_BASE}-${TAG_SUFFIX} \
+            --amend ghcr.io/${IMAGE_TAG_BASE}-amd64-${TAG_SUFFIX} \
+            --amend ghcr.io/${IMAGE_TAG_BASE}-arm64-${TAG_SUFFIX}
+          docker --debug manifest inspect ghcr.io/${IMAGE_TAG_BASE}-${TAG_SUFFIX}
+          docker --debug manifest push ghcr.io/${IMAGE_TAG_BASE}-${TAG_SUFFIX}

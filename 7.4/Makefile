@@ -2,10 +2,7 @@
 -include env_make
 
 VERSION ?= 7.4
-
-SOFTWARE_VERSION ?= php$(VERSION)
-BUILD_TAG ?= $(SOFTWARE_VERSION)-build
-IMAGE = docksal/cli
+BUILD_IMAGE_TAG ?= docksal/cli:php$(VERSION)-build
 NAME = docksal-cli-$(VERSION)
 CWD = $(shell pwd)
 
@@ -17,34 +14,34 @@ VOLUMES = -v /home/docker
 .PHONY: build test push shell run start stop logs clean release
 
 build:
-	docker build -t $(IMAGE):$(BUILD_TAG) .
+	docker build -t $(BUILD_IMAGE_TAG) .
 
 # See https://docs.docker.com/buildx/working-with-buildx/
 # See https://github.com/docker/buildx
 buildx:
-	docker buildx build --tag $(IMAGE):$(BUILD_TAG) .
+	docker buildx build --tag $(BUILD_IMAGE_TAG) .
 buildx-with-cache:
-	docker buildx build --cache-from=type=registry,ref=ghcr.io/$(IMAGE):$(BUILD_TAG) --cache-to=type=inline --tag=$(IMAGE):$(BUILD_TAG) .
+	docker buildx build --cache-from=type=registry,ref=ghcr.io/$(BUILD_IMAGE_TAG) --cache-to=type=inline --tag=$(BUILD_IMAGE_TAG) .
 
 test:
-	IMAGE=$(IMAGE) BUILD_TAG=$(BUILD_TAG) NAME=$(NAME) VERSION=$(VERSION) ../tests/test.bats
+	NAME=$(NAME) VERSION=$(VERSION) ../tests/test.bats
 
 push:
-	docker push $(IMAGE):$(BUILD_TAG)
+	docker push $(BUILD_IMAGE_TAG)
 
 run: clean
-	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(IMAGE):$(BUILD_TAG)
+	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(BUILD_IMAGE_TAG)
 
 # Copy files into container instead of mounting from the host at runtime.
 # This allows running tests on a remote docker instance.
 start: clean
-	docker create --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(IMAGE):$(BUILD_TAG)
+	docker create --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(BUILD_IMAGE_TAG)
 	docker cp ../tests/. $(NAME):/var/www/
 	docker start $(NAME)
 
 # Only copy docroot (not config overrides)
 start-bare: clean
-	docker create --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(IMAGE):$(BUILD_TAG)
+	docker create --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(BUILD_IMAGE_TAG)
 	docker cp ../tests/docroot/. $(NAME):/var/www/docroot/
 	docker start $(NAME)
 

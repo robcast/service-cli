@@ -161,7 +161,7 @@ jobs:
         name: Docker image info
         run: |
           set -xeuo pipefail
-          docker image ls | grep "${{ env.BUILD_IMAGE_TAG }}"
+          docker image ls | grep "${{ env.IMAGE }}"
           docker image inspect "${{ env.BUILD_IMAGE_TAG }}"
       -
         # Cache image layers in the registry

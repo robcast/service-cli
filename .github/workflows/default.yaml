@@ -200,6 +200,14 @@ jobs:
     runs-on: ubuntu-20.04
     needs: build-test
 
+    strategy:
+      matrix:
+        version:
+          - 7.3
+          - 7.4
+    env:
+      VERSION: ${{ matrix.version }}
+
     steps:
       -
         name: Checkout
@@ -217,19 +225,19 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_TOKEN }}
-      -
-        # Generate final image tags
-        name: Docker image tags
-        id: docker_tags
-        working-directory: ${{ env.VERSION }}
-        run: make tags
+#      -
+#        # Generate final image tags
+#        name: Docker image tags
+#        id: docker_tags
+#        working-directory: ${{ env.VERSION }}
+#        run: make tags
       -
         # Push final image manifest to the registry
-        name: Push image
+        name: Push ${{ env.VERSION }} manifest
         #if: ${{ steps.docker_tags.outputs.tags != '' }}
         run: |
           set -xeuo pipefail
-          GIT_SHORT_SHA=${GITHUB_SHA:1:7}
+          export GIT_SHORT_SHA=${GITHUB_SHA:1:7}
           # Docker Hub
           docker --debug manifest create ${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }} \
             --amend ${{ env.IMAGE }}:php${{ env.VERSION }}-amd64-${{ env.GIT_SHORT_SHA }} \

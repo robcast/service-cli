@@ -124,7 +124,7 @@ jobs:
           #platforms: linux/amd64 # Note: cannot use multi-platform with local image caching ("load: true")
           tags: ${{ env.BUILD_IMAGE_TAG }} # Tag used locally in tests
           load: true # cache image locally for use by other steps
-          cache-from: type=registry,ref=${{ env.CACHE_IMAGE_TAG }}
+          cache-from: type=registry,ref=${{ env.BUILD_IMAGE_TAG }}
           cache-to: type=inline # Write the cache metadata into the image configuration
 #      -
 #        # Build for local use
@@ -250,4 +250,19 @@ jobs:
               --amend ${tag}-arm64
             docker manifest inspect ${tag}
             docker manifest push ${tag}
+          done
+      -
+        # Clean up intermediate (arch-specific) image tags
+        name: Clean up image tags
+        if: ${{ steps.docker_tags.outputs.tags != '' }}
+        env:
+          TAGS: ${{ steps.docker_tags.outputs.tags }}
+          USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -xeuo pipefail
+          IFS="${IFS}," # Also split strings by comma (in case list of tag is comma-separated)
+          for tag in ${TAGS}; do
+            .github/scripts/docker-tag-delete.sh ${tag}-amd64
+            .github/scripts/docker-tag-delete.sh ${tag}-arm64
           done

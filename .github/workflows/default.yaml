@@ -257,8 +257,8 @@ jobs:
         if: ${{ steps.docker_tags.outputs.tags != '' }}
         env:
           TAGS: ${{ steps.docker_tags.outputs.tags }}
-          USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           set -xeuo pipefail
           IFS="${IFS}," # Also split strings by comma (in case list of tag is comma-separated)

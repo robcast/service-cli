@@ -181,10 +181,10 @@ jobs:
             VERSION=${{ env.VERSION }}
           #platforms: linux/amd64,linux/arm64 # Cache image is multi-arch
           tags: |
-            ${{ env.BUILD_IMAGE_TAG }}-${ARCH}
-            ${{ env.BUILD_IMAGE_TAG }}-${GIT_SHORT_SHA}-${ARCH}
-            ${{ env.CACHE_IMAGE_TAG }}-${ARCH}
-            ${{ env.CACHE_IMAGE_TAG }}-${GIT_SHORT_SHA}-${ARCH}
+            ${{ env.BUILD_IMAGE_TAG }}-${{ env.ARCH }}
+            ${{ env.BUILD_IMAGE_TAG }}-${{ env.GIT_SHORT_SHA }}-${{ env.ARCH }}
+            ${{ env.CACHE_IMAGE_TAG }}-${{ env.ARCH }}
+            ${{ env.CACHE_IMAGE_TAG }}-${{ env.GIT_SHORT_SHA }}-${{ env.ARCH }}
           push: ${{ github.event_name != 'pull_request' }} # Don't push for PRs
           cache-to: type=inline # Write the cache metadata into the image configuration
       -

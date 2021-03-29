@@ -196,7 +196,7 @@ jobs:
         run: make test
 
   push:
-    name: Push images to registry
+    name: ${{ matrix.version }} manifest push to registry
     runs-on: ubuntu-20.04
     needs: build-test
 
@@ -236,12 +236,14 @@ jobs:
         run: .github/scripts/docker-tags.sh
       -
         # Create and push multi-arch image manifests to registry
-        name: ${{ matrix.version }} manifest push to registry
+        name: Push image manifests
         if: ${{ steps.docker_tags.outputs.tags != '' }}
+        env:
+          TAGS: ${{ steps.docker_tags.outputs.tags }}
         run: |
           set -xeuo pipefail
           IFS="${IFS}," # Also split strings by comma (in case list of tag is comma-separated)
-          for tag in ${{ steps.docker_tags.outputs.tags }}; do
+          for tag in ${TAGS}; do
             docker manifest create ${tag} \
               --amend ${tag}-amd64
               --amend ${tag}-arm64

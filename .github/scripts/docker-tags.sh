@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -xeuo pipefail
 
 # Generates docker images tags for the docker/build-push-action@v2 action depending on the branch/tag.
 

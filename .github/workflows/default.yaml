@@ -246,7 +246,7 @@ jobs:
           IFS="${IFS}," # Also split strings by comma (in case list of tag is comma-separated)
           for tag in ${TAGS}; do
             docker manifest create ${tag} \
-              --amend ${tag}-amd64
+              --amend ${tag}-amd64 \
               --amend ${tag}-arm64
             docker manifest inspect ${tag}
             docker manifest push ${tag}

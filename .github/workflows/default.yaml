@@ -58,8 +58,13 @@ jobs:
       -
         name: Environment variables
         run: |
+          BUILD_TAG=php${{ env.VERSION }}-${{ env.ARCH }}-build
+          BUILD_IMAGE_TAG=${{ env.IMAGE }}:${BUILD_TAG}
+          CACHE_IMAGE_TAG=ghcr.io/${BUILD_IMAGE_TAG}
           echo "GIT_SHORT_SHA=${GITHUB_SHA:1:7}" >> $GITHUB_ENV
-          echo "BUILD_IMAGE_TAG=${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.ARCH }}-build" >> $GITHUB_ENV
+          echo "BUILD_TAG=${BUILD_TAG}" >> $GITHUB_ENV
+          echo "BUILD_IMAGE_TAG=${BUILD_IMAGE_TAG}" >> $GITHUB_ENV
+          echo "CACHE_IMAGE_TAG=${CACHE_IMAGE_TAG}" >> $GITHUB_ENV
       -
         name: Install prerequisites for tests
         run: |
@@ -113,7 +118,7 @@ jobs:
           #platforms: linux/amd64 # Note: cannot use multi-platform with local image caching ("load: true")
           tags: ${{ env.BUILD_IMAGE_TAG }} # Tag used locally in tests
           load: true # cache image locally for use by other steps
-          cache-from: type=registry,ref=${{ env.BUILD_IMAGE_TAG }}
+          cache-from: type=registry,ref=${{ env.CACHE_IMAGE_TAG }}
           cache-to: type=inline # Write the cache metadata into the image configuration
 #      -
 #        # Build for local use
@@ -156,7 +161,7 @@ jobs:
         name: Docker image info
         run: |
           set -xeuo pipefail
-          docker image ls | grep "${{ env.IMAGE }}"
+          docker image ls | grep "${{ env.BUILD_IMAGE_TAG }}"
           docker image inspect "${{ env.BUILD_IMAGE_TAG }}"
       -
         # Cache image layers in the registry
@@ -170,8 +175,9 @@ jobs:
             VERSION=${{ env.VERSION }}
           #platforms: linux/amd64,linux/arm64 # Cache image is multi-arch
           tags: |
-            ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.ARCH }}-build
-            ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.ARCH }}-${{ env.GIT_SHORT_SHA }}
+            ${{ env.CACHE_IMAGE_TAG }}
+            ${{ env.CACHE_IMAGE_TAG }}-${{ env.GIT_SHORT_SHA }}
+            ${{ env.BUILD_IMAGE_TAG }}-${{ env.GIT_SHORT_SHA }}
           push: ${{ github.event_name != 'pull_request' }} # Don't push for PRs
           cache-to: type=inline # Write the cache metadata into the image configuration
       -
@@ -179,7 +185,6 @@ jobs:
         name: Test
         working-directory: ${{ env.VERSION }}
         env:
-          BUILD_TAG: php${{ env.VERSION }}-build # Used in Makefile
           SECRET_PLATFORMSH_CLI_TOKEN: ${{ secrets.SECRET_PLATFORMSH_CLI_TOKEN }}
           SECRET_TERMINUS_TOKEN: ${{ secrets.SECRET_TERMINUS_TOKEN }}
         run: make test
@@ -193,10 +198,6 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v2
-      -
-        name: Environment variables
-        run: |
-          echo "GIT_SHORT_SHA=${GITHUB_SHA:1:7}" >> $GITHUB_ENV
       -
         name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -222,7 +223,16 @@ jobs:
         #if: ${{ steps.docker_tags.outputs.tags != '' }}
         run: |
           set -xeuo pipefail
-          docker --debug manifest create docksal/cli:php7.3-multi-build \
+          GIT_SHORT_SHA=${GITHUB_SHA:1:7}
+          # Docker Hub
+          docker --debug manifest create ${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }} \
+            --amend ${{ env.IMAGE }}:php${{ env.VERSION }}-amd64-${{ env.GIT_SHORT_SHA }} \
+            --amend ${{ env.IMAGE }}:php${{ env.VERSION }}-arm64-${{ env.GIT_SHORT_SHA }}
+          docker --debug manifest inspect ${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}
+          docker --debug manifest push ${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}
+          # GitHub CR
+          docker --debug manifest create ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }} \
             --amend ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-amd64-${{ env.GIT_SHORT_SHA }} \
             --amend ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-arm64-${{ env.GIT_SHORT_SHA }}
-          docker --debug manifest inspect docksal/cli:php7.3-multi-build
+          docker --debug manifest inspect ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}
+          docker --debug manifest push ghcr.io/${{ env.IMAGE }}:php${{ env.VERSION }}-${{ env.GIT_SHORT_SHA }}

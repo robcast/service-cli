@@ -15,7 +15,8 @@ declare -a imageTagArr
 
 # On every build
 GIT_SHORT_SHA="${GITHUB_SHA:1:7}" # Short SHA (7 characters)
-imageTagArr+=("${IMAGE_TAG_BASE}-build-${GIT_SHORT_SHA}")
+imageTagArr+=("${IMAGE_TAG_BASE}-build-${GIT_SHORT_SHA}") # Specific build tag
+imageTagArr+=("${IMAGE_TAG_BASE}-build") # Latest build tag (used with cache-from)
 
 # develop => version-edge
 if [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then

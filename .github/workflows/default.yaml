@@ -59,7 +59,7 @@ jobs:
         name: Environment variables
         run: |
           GIT_SHORT_SHA=${GITHUB_SHA:1:7}
-          BUILD_IMAGE_TAG=${IMAGE}:php${VERSION}-build-${GIT_SHORT_SHA}-${ARCH}
+          BUILD_IMAGE_TAG=${IMAGE}:php${VERSION}-build
           CACHE_IMAGE_TAG=ghcr.io/${BUILD_IMAGE_TAG}
           # Export variables for further steps
           echo "GIT_SHORT_SHA=${GIT_SHORT_SHA}" >> $GITHUB_ENV
@@ -181,9 +181,10 @@ jobs:
             VERSION=${{ env.VERSION }}
           #platforms: linux/amd64,linux/arm64 # Cache image is multi-arch
           tags: |
-            ${{ env.CACHE_IMAGE_TAG }}
-            ${{ env.CACHE_IMAGE_TAG }}-${{ env.GIT_SHORT_SHA }}
-            ${{ env.BUILD_IMAGE_TAG }}-${{ env.GIT_SHORT_SHA }}
+            ${{ env.BUILD_IMAGE_TAG }}-${ARCH}
+            ${{ env.BUILD_IMAGE_TAG }}-${GIT_SHORT_SHA}-${ARCH}
+            ${{ env.CACHE_IMAGE_TAG }}-${ARCH}
+            ${{ env.CACHE_IMAGE_TAG }}-${GIT_SHORT_SHA}-${ARCH}
           push: ${{ github.event_name != 'pull_request' }} # Don't push for PRs
           cache-to: type=inline # Write the cache metadata into the image configuration
       -

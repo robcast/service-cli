@@ -257,7 +257,7 @@ jobs:
         if: ${{ steps.docker_tags.outputs.tags != '' }}
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }} # Must be password. Cannot use PAT here.
         run: |
           set -xeuo pipefail
           GIT_SHORT_SHA=${GITHUB_SHA:1:7}

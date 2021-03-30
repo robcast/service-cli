@@ -25,7 +25,7 @@ login_data() {
 cat <<EOF
 {
   "username": "${DOCKERHUB_USERNAME}",
-  "password": "${DOCKERHUB_TOKEN}"
+  "password": "${DOCKERHUB_PASSWORD}"
 }
 EOF
 }

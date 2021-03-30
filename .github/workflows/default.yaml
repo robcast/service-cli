@@ -256,13 +256,12 @@ jobs:
         name: Clean up image tags
         if: ${{ steps.docker_tags.outputs.tags != '' }}
         env:
-          TAGS: ${{ steps.docker_tags.outputs.tags }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           set -xeuo pipefail
-          IFS="${IFS}," # Also split strings by comma (in case list of tag is comma-separated)
-          for tag in ${TAGS}; do
-            .github/scripts/docker-tag-delete.sh ${tag}-amd64
-            .github/scripts/docker-tag-delete.sh ${tag}-arm64
-          done
+          GIT_SHORT_SHA=${GITHUB_SHA:1:7}
+          .github/scripts/docker-tag-delete.sh ${IMAGE}:php${VERSION}-build-amd64
+          .github/scripts/docker-tag-delete.sh ${IMAGE}:php${VERSION}-build-arm64
+          .github/scripts/docker-tag-delete.sh ${IMAGE}:php${VERSION}-build-${GIT_SHORT_SHA}-amd64
+          .github/scripts/docker-tag-delete.sh ${IMAGE}:php${VERSION}-build-${GIT_SHORT_SHA}-arm64
